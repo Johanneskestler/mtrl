@@ -1,0 +1,36 @@
+# MTRL Cluster Requirements
+# Extended from pyproject.toml for cluster deployment
+
+# Core RL and ML
+torch>=2.3.0,<3.0.0
+jax>=0.4.20,<0.5.0
+jaxtyping>=0.2.0
+flax>=0.9.0
+gymnasium>=1.0.0
+metaworld>=3.1.0
+
+# SAC and RL utilities
+stable-baselines3>=2.0.0
+optax>=0.2.0
+distrax>=0.1.5
+
+# Monitoring and logging
+wandb>=0.15.0
+tensorboard>=2.13.0
+altair>=5.0.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Data handling
+h5py>=3.8.0
+
+# Utilities
+tyro>=0.8.0
+orbax-checkpoint>=0.5.0
+tqdm>=4.65.0
+pyyaml>=6.0
+
+# Development (optional but recommended)
+pytest>=7.4.0
+black>=23.7.0
+ruff>=0.1.0

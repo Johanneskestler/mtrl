@@ -1,0 +1,47 @@
+# .dockerignore - Files to exclude from Docker build context
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Cluster/local artifacts
+logs/
+models/
+wandb_cache/
+wandb/
+*.sif
+*.log
+*.err
+slurm-*.out
+
+# Large files
+*.pt
+*.pth
+*.h5
+*.pickle
+*.pkl
+
+# Temporary
+tmp/
+temp/
+.tmp/
