@@ -3,11 +3,18 @@
 
 # Core RL and ML
 torch>=2.3.0,<3.0.0
-jax>=0.4.20,<0.5.0
+# JAX with CUDA 12 support (must match CUDA version in base image)
+jax[cuda12]>=0.4.20,<0.5.0
 jaxtyping>=0.2.0
 flax>=0.9.0
 gymnasium>=1.0.0
-metaworld>=3.1.0
+# pip currently only provides metaworld 3.0.0 for Python 3.10; 3.1.0 is not published
+metaworld==3.0.0
+
+# Graphics and rendering (for headless MuJoCo with OSMesa)
+# PyOpenGL must be installed before PyOpenGL-accelerate
+PyOpenGL==3.1.7
+PyOpenGL-accelerate==3.1.7
 
 # SAC and RL utilities
 stable-baselines3>=2.0.0
@@ -34,3 +41,4 @@ pyyaml>=6.0
 pytest>=7.4.0
 black>=23.7.0
 ruff>=0.1.0
+

@@ -1,17 +1,18 @@
 #!/bin/bash
-# Upload MTRL code to dataLAB cluster
+# Upload MTRL code to TU Wien DataLAB cluster
+# Matches structure: /home/e11704784/metaworld_project/
 
 set -e
 
 echo "=========================================="
-echo "Upload MTRL to Cluster"
+echo "Upload MTRL to DataLAB Cluster"
 echo "=========================================="
 echo ""
 
 # Configuration
 CLUSTER_HOST="datalab"
 CLUSTER_USER="${1:-e11704784}"
-REMOTE_PROJECT_DIR="/home/${CLUSTER_USER}/mtrl_project"
+REMOTE_PROJECT_DIR="/home/${CLUSTER_USER}/metaworld_project"
 
 # Validate input
 if [ -z "$CLUSTER_USER" ]; then
@@ -25,7 +26,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
 echo "Local:        $PROJECT_ROOT"
-echo "Remote:       ${CLUSTER_HOST}:${REMOTE_PROJECT_DIR}"
+echo "Remote:       ${CLUSTER_HOST}:${REMOTE_PROJECT_DIR}/source/mtrl"
 echo "User:         $CLUSTER_USER"
 echo ""
 
@@ -39,15 +40,23 @@ fi
 echo "✓ Connection OK"
 echo ""
 
-# Create remote directories
+# Create remote directories (match DataLAB structure)
 echo "Creating remote directories..."
-ssh "${CLUSTER_USER}@${CLUSTER_HOST}" "mkdir -p ${REMOTE_PROJECT_DIR}/{logs,models,wandb_cache,source}"
+ssh "${CLUSTER_USER}@${CLUSTER_HOST}" "mkdir -p ${REMOTE_PROJECT_DIR}/{logs,models,wandb_cache,source/mtrl}"
 
-# Upload code
-echo "Uploading code (this may take a few minutes)..."
+# Upload code to source/mtrl/
+echo "Uploading code to ${REMOTE_PROJECT_DIR}/source/mtrl/ (this may take a few minutes)..."
 rsync -avP \
     --exclude='.git' \
     --exclude='__pycache__' \
+    --exclude='*.pyc' \
+    --exclude='.pytest_cache' \
+    --exclude='build' \
+    --exclude='dist' \
+    --exclude='*.egg-info' \
+    --exclude='docker/cluster/.sif' \
+    "$PROJECT_ROOT/" \
+    "${CLUSTER_USER}@${CLUSTER_HOST}:${REMOTE_PROJECT_DIR}/source/mtrl/"
     --exclude='*.pyc' \
     --exclude='wandb' \
     --exclude='logs' \
