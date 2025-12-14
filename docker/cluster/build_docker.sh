@@ -13,17 +13,19 @@ IMAGE_NAME="mtrl"
 IMAGE_TAG="latest"
 FULL_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
 
-# Get script directory
+# Get script directory (docker/cluster -> docker -> mtrl root)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
 echo "Project root: $PROJECT_ROOT"
 echo "Building image: $FULL_IMAGE"
 echo ""
 
-# Check if Dockerfile exists
-if [ ! -f "$PROJECT_ROOT/Dockerfile" ]; then
-    echo "❌ Error: Dockerfile not found at $PROJECT_ROOT/Dockerfile"
+# Check if Dockerfile exists (in docker/ directory)
+DOCKERFILE_PATH="$PROJECT_ROOT/docker/Dockerfile"
+
+if [ ! -f "$DOCKERFILE_PATH" ]; then
+    echo "❌ Error: Dockerfile not found at $DOCKERFILE_PATH"
     exit 1
 fi
 
@@ -31,7 +33,7 @@ fi
 echo "Building Docker image... (this may take 10-15 minutes)"
 docker build \
     -t "$FULL_IMAGE" \
-    -f "$PROJECT_ROOT/Dockerfile" \
+    -f "$DOCKERFILE_PATH" \
     "$PROJECT_ROOT"
 
 BUILD_STATUS=$?

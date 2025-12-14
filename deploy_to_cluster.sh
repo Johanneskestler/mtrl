@@ -20,7 +20,7 @@ REMOTE_PROJECT_DIR="/home/${CLUSTER_USER}/metaworld_project"
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+PROJECT_ROOT="$SCRIPT_DIR"
 
 # ============================================================================
 # Step 1: Build Docker Image
@@ -28,14 +28,16 @@ PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 echo "[1/5] Building Docker image locally..."
 echo ""
 
-if [ ! -f "$PROJECT_ROOT/Dockerfile" ]; then
-    echo "❌ Error: Dockerfile not found at $PROJECT_ROOT/Dockerfile"
+DOCKERFILE_PATH="$PROJECT_ROOT/docker/Dockerfile"
+
+if [ ! -f "$DOCKERFILE_PATH" ]; then
+    echo "❌ Error: Dockerfile not found at $DOCKERFILE_PATH"
     exit 1
 fi
 
 docker build \
     -t mtrl:latest \
-    -f "$PROJECT_ROOT/Dockerfile" \
+    -f "$DOCKERFILE_PATH" \
     "$PROJECT_ROOT"
 
 if [ $? -ne 0 ]; then
