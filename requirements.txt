@@ -11,10 +11,9 @@ gymnasium>=1.0.0
 # pip currently only provides metaworld 3.0.0 for Python 3.10; 3.1.0 is not published
 metaworld==3.0.0
 
-# Graphics and rendering (for headless MuJoCo with OSMesa)
-# PyOpenGL must be installed before PyOpenGL-accelerate
+# Graphics and rendering (for headless MuJoCo with EGL)
 PyOpenGL==3.1.7
-PyOpenGL-accelerate==3.1.7
+# Note: PyOpenGL-accelerate removed due to Python 3.12 compatibility issues (optional package)
 
 # SAC and RL utilities
 stable-baselines3>=2.0.0

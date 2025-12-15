@@ -125,13 +125,20 @@ echo ""
 # Upload Singularity container if exists
 if [ -f "$PROJECT_ROOT/mtrl.sif" ]; then
     echo "Uploading Singularity container (this may take a while)..."
+    
+    # Upload to /share/<user>/containers/ (persistent storage)
+    SHARE_CONTAINER_DIR="/share/${CLUSTER_USER}/containers"
+    
+    echo "Ensuring container directory exists: ${SHARE_CONTAINER_DIR}"
+    ssh "${CLUSTER_USER}@${CLUSTER_HOST}" "mkdir -p ${SHARE_CONTAINER_DIR}"
+    
     scp "$PROJECT_ROOT/mtrl.sif" \
-        "${CLUSTER_USER}@${CLUSTER_HOST}:${REMOTE_PROJECT_DIR}/mtrl.sif"
+        "${CLUSTER_USER}@${CLUSTER_HOST}:${SHARE_CONTAINER_DIR}/mtrl.sif"
     
     if [ $? -ne 0 ]; then
         echo "⚠️  Container upload failed - will convert on cluster"
     else
-        echo "✅ Container uploaded"
+        echo "✅ Container uploaded to ${SHARE_CONTAINER_DIR}/mtrl.sif"
     fi
 else
     echo "⚠️  mtrl.sif not found - will convert on cluster with apptainer"
@@ -190,11 +197,12 @@ echo "3. Setup W&B authentication:"
 echo "   export WANDB_API_KEY='your-key'"
 echo ""
 echo "4. Submit training job:"
-echo "   sbatch ${REMOTE_PROJECT_DIR}/source/mtrl/docker/cluster/train_mt10_sac_simple.sh"
+echo "   cd ${REMOTE_PROJECT_DIR}/source/mtrl"
+echo "   sbatch --export=WANDB_API_KEY=\$WANDB_API_KEY docker/cluster/train_mt10_a100_20m.sh"
 echo ""
 echo "5. Monitor job:"
 echo "   squeue -u ${CLUSTER_USER}"
-echo "   tail -f ${REMOTE_PROJECT_DIR}/logs/mt10_sac_simple_*.log"
+echo "   tail -f ${REMOTE_PROJECT_DIR}/logs/mt10_sac_20m_*.log"
 echo ""
 echo "6. View results:"
 echo "   https://wandb.ai/${CLUSTER_USER}/mtrl-cluster"

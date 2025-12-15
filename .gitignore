@@ -172,3 +172,14 @@ flake.lock
 .envrc
 cache
 .DS_Store
+
+# API Keys and Secrets (DO NOT COMMIT!)
+docker/test_local.sh
+docker/cluster/*_with_key.sh
+**/wandb_api_key
+.wandb_api_key
+
+# Local test outputs
+logs_local_test/
+results_local_test/
+logs_local_test_output.txt
