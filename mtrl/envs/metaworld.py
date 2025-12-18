@@ -82,6 +82,8 @@ class MetaworldConfig(EnvConfig):
 
         if self.use_one_hot and self.env_id != "MT1":
             num_tasks = 1
+            if self.env_id == "MT3":
+                num_tasks = 3
             if self.env_id == "MT10":
                 num_tasks = 10
             if self.env_id == "MT50":
@@ -100,13 +102,78 @@ class MetaworldConfig(EnvConfig):
         return env_obs_space
 
     @override
+    def _custom_evaluate(
+        self, envs: gym.vector.VectorEnv, agent: Agent
+    ) -> tuple[float, float, dict[str, float]]:
+        """Custom evaluation that avoids metaworld library bug with final_info."""
+        import numpy as np
+        from collections import defaultdict
+        
+        num_envs = envs.num_envs
+        episodes_per_env = self.num_eval_episodes // num_envs
+        
+        all_returns = []
+        all_successes = []
+        per_task_returns = defaultdict(list)
+        per_task_successes = defaultdict(list)
+        
+        # Get task names from env if available
+        try:
+            if hasattr(envs.envs[0].unwrapped, 'spec') and hasattr(envs.envs[0].unwrapped.spec, 'id'):
+                task_names = [env.unwrapped.spec.id for env in envs.envs]
+            else:
+                task_names = [f"task_{i}" for i in range(num_envs)]
+        except:
+            task_names = [f"task_{i}" for i in range(num_envs)]
+        
+        for _ in range(episodes_per_env):
+            obs, _ = envs.reset()
+            episode_returns = np.zeros(num_envs)
+            episode_successes = np.zeros(num_envs)
+            dones = np.zeros(num_envs, dtype=bool)
+            
+            while not dones.all():
+                # Use eval_action for mean of distribution (deterministic evaluation)
+                # This is standard practice for SAC evaluation
+                actions = agent.eval_action(obs)
+                obs, rewards, terminated, truncated, infos = envs.step(actions)
+                done = terminated | truncated
+                
+                episode_returns += rewards * (~dones)
+                
+                # Extract success from info
+                if "success" in infos:
+                    episode_successes = np.maximum(episode_successes, infos["success"])
+                
+                dones = dones | done
+            
+            # Store results
+            for i, (ret, success, task_name) in enumerate(zip(episode_returns, episode_successes, task_names)):
+                all_returns.append(float(ret))
+                all_successes.append(float(success))
+                per_task_returns[task_name].append(float(ret))
+                per_task_successes[task_name].append(float(success))
+        
+        # Calculate metrics
+        mean_success = np.mean(all_successes)
+        mean_return = np.mean(all_returns)
+        
+        per_task_success_rates = {
+            task: np.mean(successes) 
+            for task, successes in per_task_successes.items()
+        }
+        
+        return mean_success, mean_return, per_task_success_rates
+    
     def evaluate(
         self, envs: gym.vector.VectorEnv, agent: Agent
     ) -> tuple[float, float, dict[str, float]]:
         assert isinstance(envs, gym.vector.AsyncVectorEnv) or isinstance(
             envs, gym.vector.SyncVectorEnv
         )
-        return evaluation(agent, envs, num_episodes=self.num_eval_episodes)[:3]
+        
+        # Use custom evaluation to avoid metaworld library bug with final_info
+        return self._custom_evaluate(envs, agent)
 
     @override
     def spawn(self, seed: int = 1) -> gym.vector.VectorEnv:
@@ -149,9 +216,22 @@ class MetaworldConfig(EnvConfig):
                 num_goals=self.num_goals,
                 reward_normalization_method=self.reward_normalization_method,
             )
+        elif self.env_id == "MT3":
+            envs_list = ["reach-v3", "push-v3", "pick-place-v3"]
+            return gym.make_vec(
+                "Meta-World/custom-mt-envs",
+                seed=seed,
+                envs_list=envs_list,
+                use_one_hot=self.use_one_hot,
+                terminate_on_success=self.terminate_on_success,
+                vector_strategy="async",
+                reward_function_version=self.reward_func_version,
+                reward_normalization_method=self.reward_normalization_method,
+            )
         elif self.env_id == "MT1":
             assert self.task_name is not None, "task_name must be specified for MT1"
-            return gym.vector.SyncVectorEnv(
+            # Use AsyncVectorEnv to avoid metaworld.evaluation() bug with SyncVectorEnv
+            return gym.vector.AsyncVectorEnv(
                 [
                     lambda: gym.make(
                         "Meta-World/MT1",

@@ -5,7 +5,7 @@ set -e
 
 CLUSTER_HOST="datalab"
 CLUSTER_USER="e11704784"
-LOCAL_CONTAINER="mtrl_new.sif"
+LOCAL_CONTAINER="/tmp/mtrl.sif"
 REMOTE_CONTAINER_DIR="/share/${CLUSTER_USER}/containers"
 
 echo "=========================================="

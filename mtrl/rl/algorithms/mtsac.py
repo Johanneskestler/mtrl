@@ -355,6 +355,9 @@ class MTSAC(OffPolicyAlgorithm[MTSACConfig]):
             "losses/qf_loss": critic_loss_value.mean(),
             "metrics/critic_grad_magnitude": jnp.linalg.norm(flat_grads),
             "metrics/critic_params_norm": jnp.linalg.norm(flat_params_crit),
+            "metrics/q_min": jnp.min(q_values),
+            "metrics/q_max": jnp.max(q_values),
+            "metrics/q_std": jnp.std(q_values),
         }
 
     def update_actor(
@@ -411,10 +414,18 @@ class MTSAC(OffPolicyAlgorithm[MTSACConfig]):
         )
 
         flat_params_act, _ = flatten_util.ravel_pytree(actor.params)
+        
+        # Sample actions for statistics
+        action_samples, _ = self.actor.apply_fn(
+            self.actor.params, data.observations
+        ).sample_and_log_prob(seed=jax.random.PRNGKey(0))
+        
         logs = {
             "losses/actor_loss": actor_loss_value.mean(),
             "metrics/actor_grad_magnitude": jnp.linalg.norm(flat_grads),
             "metrics/actor_params_norm": jnp.linalg.norm(flat_params_act),
+            "metrics/action_mean": jnp.mean(jnp.abs(action_samples)),
+            "metrics/action_std": jnp.std(action_samples),
         }
 
         return (self.replace(actor=actor, key=key), log_probs, logs)

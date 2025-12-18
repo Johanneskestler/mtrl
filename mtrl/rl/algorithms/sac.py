@@ -235,6 +235,9 @@ class SAC(OffPolicyAlgorithm[SACConfig]):
                 "losses/qf_values": qf_values,
                 "losses/qf_loss": critic_loss_value,
                 "metrics/critic_grad_magnitude": jnp.linalg.norm(flat_grads),
+                "metrics/q_min": jnp.min(q_values),
+                "metrics/q_max": jnp.max(q_values),
+                "metrics/q_std": jnp.std(q_values),
             }
 
         # --- Alpha loss ---
@@ -294,6 +297,13 @@ class SAC(OffPolicyAlgorithm[SACConfig]):
 
         flat_params_act, _ = flatten_util.ravel_pytree(self.actor.params)
         logs["metrics/actor_params_norm"] = jnp.linalg.norm(flat_params_act)
+        
+        # Sample actions for statistics
+        action_samples, _ = self.actor.apply_fn(
+            self.actor.params, data.observations
+        ).sample_and_log_prob(seed=jax.random.PRNGKey(0))
+        logs["metrics/action_mean"] = jnp.mean(jnp.abs(action_samples))
+        logs["metrics/action_std"] = jnp.std(action_samples)
 
         flat_params_crit, _ = flatten_util.ravel_pytree(self.critic.params)
         logs["metrics/critic_params_norm"] = jnp.linalg.norm(flat_params_crit)

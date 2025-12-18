@@ -183,3 +183,10 @@ docker/cluster/*_with_key.sh
 logs_local_test/
 results_local_test/
 logs_local_test_output.txt
+
+# Appimages
+*.sif
+
+# Notes
+notes/*
+

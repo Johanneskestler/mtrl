@@ -54,14 +54,12 @@ rsync -avP \
     --exclude='build' \
     --exclude='dist' \
     --exclude='*.egg-info' \
-    --exclude='docker/cluster/.sif' \
-    "$PROJECT_ROOT/" \
-    "${CLUSTER_USER}@${CLUSTER_HOST}:${REMOTE_PROJECT_DIR}/source/mtrl/"
-    --exclude='*.pyc' \
+    --exclude='*.sif' \
+    --exclude='*.tar.gz' \
     --exclude='wandb' \
-    --exclude='logs' \
+    --exclude='logs_*' \
+    --exclude='results_*' \
     --exclude='models' \
-    --exclude='.sif' \
     "${PROJECT_ROOT}/" \
     "${CLUSTER_USER}@${CLUSTER_HOST}:${REMOTE_PROJECT_DIR}/source/mtrl/"
 

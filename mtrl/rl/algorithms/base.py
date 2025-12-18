@@ -159,12 +159,14 @@ class OffPolicyAlgorithm(
 
             for i, env_ended in enumerate(done):
                 if env_ended:
-                    global_episodic_return.append(
-                        infos["final_info"]["episode"]["r"][i]
-                    )
-                    global_episodic_length.append(
-                        infos["final_info"]["episode"]["l"][i]
-                    )
+                    # Gymnasium compatibility: final_info might not exist
+                    if "final_info" in infos:
+                        global_episodic_return.append(
+                            infos["final_info"]["episode"]["r"][i]
+                        )
+                        global_episodic_length.append(
+                            infos["final_info"]["episode"]["l"][i]
+                        )
                     episodes_ended += 1
 
             if global_step % 500 == 0 and global_episodic_return:
